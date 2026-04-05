@@ -9,17 +9,17 @@
 <style>
   /* ===== CSS Variables ===== */
   :root {
-    --bg: #0f0f14;
-    --surface: #1a1a24;
-    --surface2: #22222f;
-    --accent: #f5c842;
-    --accent2: #ff7c3f;
-    --text: #e8e4d8;
-    --text-dim: #8a8478;
-    --bubble-ai: #1e2235;
-    --bubble-user: #2a1f0e;
-    --border: rgba(245,200,66,0.18);
-    --glow: rgba(245,200,66,0.25);
+    --bg: #ffffff;
+    --surface: #f5f5f7;
+    --surface2: #ebebef;
+    --accent: #d4a017;
+    --accent2: #e86a2a;
+    --text: #1a1a1a;
+    --text-dim: #6b6b6b;
+    --bubble-ai: #f0f0f5;
+    --bubble-user: #fff8e8;
+    --border: rgba(180,140,30,0.2);
+    --glow: rgba(212,160,23,0.18);
     --font-main: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
     --radius: 18px;
     --max-turns: 10;
@@ -110,7 +110,7 @@
     content: '';
     position: absolute; inset: 1px;
     border-radius: 50%;
-    background: var(--bg);
+    background: #ffffff;
     z-index: 0;
   }
   .avatar-img {
@@ -189,12 +189,13 @@
     background: var(--bubble-ai);
     border: 1px solid var(--border);
     border-bottom-left-radius: 4px;
+    color: #1a1a1a;
   }
   .msg.user .bubble {
     background: var(--bubble-user);
-    border: 1px solid rgba(255,124,63,.2);
+    border: 1px solid rgba(212,160,23,.35);
     border-bottom-right-radius: 4px;
-    color: #f0dcc0;
+    color: #3a2a00;
   }
 
   /* Typing indicator */
@@ -259,11 +260,11 @@
 
   #send-btn {
     background: var(--accent);
-    color: #1a1000;
-    box-shadow: 0 2px 12px rgba(245,200,66,.3);
+    color: #ffffff;
+    box-shadow: 0 2px 12px rgba(212,160,23,.3);
   }
   #send-btn:hover:not(:disabled) {
-    box-shadow: 0 2px 20px rgba(245,200,66,.5);
+    box-shadow: 0 2px 20px rgba(212,160,23,.5);
   }
 
   #mic-btn {
@@ -352,7 +353,7 @@
         下の <div class="avatar-emoji"> を削除して
         <img class="avatar-img" src="./avatar.jpg" alt="kiiroPAISEN"> に変更してください
       -->
-      <div class="avatar-emoji">🐱</div>
+      <div class="avatar-emoji">🤖</div>
     </div>
     <div class="avatar-name">kiiroPAISEN</div>
     <div class="avatar-status" id="avatar-status">待機中...</div>
@@ -382,7 +383,10 @@
       完了画像（例: thankyou.jpg）を同フォルダに置き、
       下の end-icon を <img src="./thankyou.jpg" style="width:200px;border-radius:16px"> に変更
     -->
-    <div class="end-icon">🎉</div>
+    <img src="./thankyou.jpg" alt="ありがとうございました"
+         style="width:220px;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.08)"
+         onerror="this.style.display='none';document.getElementById('end-fallback').style.display='block'">
+    <div id="end-fallback" style="display:none;font-size:4rem">🎉</div>
     <div class="end-title">ありがとうございました！</div>
     <div class="end-body">
       アンケートへのご協力、誠にありがとうございます。<br>
@@ -411,10 +415,10 @@ const CONFIG = {
   CHARACTER_NAME: "kiiroPAISEN",
 
   // 最初の挨拶メッセージ（固定）
-  OPENING_MESSAGE: "やあ！昨日の勉強会はどうだった？感想を聞かせてくれるとうれしいな！",
+  OPENING_MESSAGE: "やあ！昨日の勉強会はどうだった？せっかくだから、ちょっと感想を聞かせてよ〜！",
 
   // 終了メッセージ（固定）
-  CLOSING_MESSAGE: "ありがとうございます！アンケートはこれにて終了！",
+  CLOSING_MESSAGE: "ありがとう！アンケートはこれにて終了！主催者に変わり御礼申し上げます！勉強会に参加いただきまして誠にありがとうございました。アンケートを参考により良い運営を目指していきます！ご不明点があれば先のメールにて返信いただければと思います。また次回の勉強会でお会いしましょう！ではでは！",
 };
 // ============================================================
 
@@ -483,9 +487,10 @@ async function sendMessage() {
       aiReply = CONFIG.CLOSING_MESSAGE;
       conversationHistory.push({ role: "model", content: aiReply });
       appendMessage("ai", aiReply);
-      // finalizeは音声と並行して即実行（音声完了を待たない）
-      finalizeSession();
-      speak(aiReply);
+      speak(aiReply, () => {
+        // 喋り終わったら終了処理
+        finalizeSession();
+      });
     } else {
       // 通常ターン: GASへ送信
       const res = await callGAS({
@@ -548,7 +553,7 @@ function appendMessage(role, text) {
 
   const avatarDiv = document.createElement("div");
   avatarDiv.className = "msg-avatar";
-  avatarDiv.textContent = role === "ai" ? "🐱" : "😃";
+  avatarDiv.textContent = role === "ai" ? "🤖" : "👤";
 
   const bubble = document.createElement("div");
   bubble.className = "bubble";
@@ -565,7 +570,7 @@ function showTyping() {
   const div = document.createElement("div");
   div.className = "msg ai"; div.id = id;
   div.innerHTML = `
-    <div class="msg-avatar">🐱</div>
+    <div class="msg-avatar">🤖</div>
     <div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>
   `;
   chatWindow.appendChild(div);
