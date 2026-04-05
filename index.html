@@ -477,9 +477,8 @@ async function sendMessage() {
       aiReply = CONFIG.CLOSING_MESSAGE;
       conversationHistory.push({ role: "model", content: aiReply });
       appendMessage("ai", aiReply);
-      speak(aiReply, () => {
-        // 喋り終わったら終了処理
-        finalizeSession();
+speak(aiReply); // コールバックを外して、とにかく喋らせる
+      finalizeSession(); // 喋っている裏で、即座に集計＆GAS送信を開始！
       });
     } else {
       // 通常ターン: GASへ送信
