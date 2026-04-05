@@ -479,7 +479,7 @@ async function sendMessage() {
       appendMessage("ai", aiReply);
 speak(aiReply); // コールバックを外して、とにかく喋らせる
       finalizeSession(); // 喋っている裏で、即座に集計＆GAS送信を開始！
-      });
+
     } else {
       // 通常ターン: GASへ送信
       const res = await callGAS({
