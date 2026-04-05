@@ -402,7 +402,7 @@
 // ============================================================
 const CONFIG = {
   // GAS WebアプリのURLを貼り付けてください
-  GAS_URL: "https://script.google.com/macros/s/YOUR_GAS_DEPLOYMENT_ID/exec",
+  GAS_URL: "https://script.google.com/macros/s/AKfycbxEMuvHkGPJhzRVWwS7jWuS04vH-HycgLSe2s5c1Vya5a7X9G0N5fPolWaVAPUwBRuc/exec",
 
   // 最大ターン数
   MAX_TURNS: 10,
