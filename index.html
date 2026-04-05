@@ -477,9 +477,10 @@ async function sendMessage() {
       aiReply = CONFIG.CLOSING_MESSAGE;
       conversationHistory.push({ role: "model", content: aiReply });
       appendMessage("ai", aiReply);
-speak(aiReply); // コールバックを外して、とにかく喋らせる
-      finalizeSession(); // 喋っている裏で、即座に集計＆GAS送信を開始！
-
+      speak(aiReply, () => {
+        // 喋り終わったら終了処理
+        finalizeSession();
+      });
     } else {
       // 通常ターン: GASへ送信
       const res = await callGAS({
