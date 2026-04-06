@@ -483,8 +483,8 @@ async function sendMessage() {
     return;
   }
 
-  // 9ターン目：固定の最後の質問を出す
-  if (turnCount === CONFIG.MAX_TURNS - 1) {
+  // 9ターン目：固定の最後の質問を出す（MAX_TURNS-1 = 9ターン目）
+  if (turnCount >= CONFIG.MAX_TURNS - 1) {
     const lastQ = CONFIG.LAST_QUESTION;
     conversationHistory.push({ role: "model", content: lastQ });
     appendMessage("ai", lastQ);
@@ -496,7 +496,7 @@ async function sendMessage() {
     return;
   }
 
-  // 通常ターン：GASへ送信
+  // 通常ターン（1〜8）：GASへ送信
   showBubbleTyping();
 
   try {
@@ -507,7 +507,8 @@ async function sendMessage() {
     });
 
     hideBubbleTyping();
-    const reply = res.reply || "（返答の取得に失敗しました）";
+    const rawReply = res.reply || "（返答の取得に失敗しました）";
+    const reply = cleanReply(rawReply);
     const score = res.score || null;
     const imgFile = res.image || "Hello.png";
 
@@ -569,6 +570,27 @@ async function callGAS(payload) {
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return await res.json();
+}
+
+// ===== JSONゴミ除去ヘルパー =====
+// Geminiがたまに {"reply":"..."} をそのまま返すケースに対応
+function cleanReply(text) {
+  if (!text) return "";
+  // JSON形式っぽければパースを試みる
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try {
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (parsed.reply) return parsed.reply;
+    } catch(e) { /* パース失敗はそのまま続行 */ }
+  }
+  // { "reply": で始まっている場合は除去
+  let clean = text
+    .replace(/^\s*\{\s*"reply"\s*:\s*"/, "")
+    .replace(/"\s*,?\s*"score"[\s\S]*$/, "")
+    .replace(/"\s*\}\s*$/, "")
+    .trim();
+  return clean || text;
 }
 
 // ===== DOM Helpers =====
