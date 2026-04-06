@@ -139,13 +139,8 @@
     0%,100% { opacity:.3; } 50% { opacity:1; }
   }
 
-  /* スコアバッジ */
-  .score-badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: .68rem; color: var(--text-dim);
-    margin-top: 6px;
-  }
-  .score-stars { color: var(--accent); letter-spacing: 1px; }
+  /* スコアバッジは非表示（内部処理のみ） */
+  #score-badge { display: none !important; }
 
   /* ===== Chat Window ===== */
   #chat-window {
@@ -288,6 +283,7 @@
   #end-screen img {
     width: 240px; border-radius: 20px;
     box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+    display: block;
   }
   .end-title {
     font-size: 1.3rem; font-weight: 700;
@@ -331,9 +327,10 @@
            onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>'">
     </div>
     <div class="speech-bubble" id="speech-bubble">
-      <div class="bubble-text" id="bubble-text">やあこんにちは！勉強会のアンケートをとっているんだ。あなたの意見を聞かせてください</div>
-      <div class="score-badge" id="score-badge" style="display:none">
-        <span class="score-stars" id="score-stars"></span>
+      <div class="bubble-text" id="bubble-text">やあこんにちは！勉強会のアンケートをとっているんだ。あなたの意見を聞かせてください先日の勉強会率直に言ってどうだった？</div>
+      <!-- スコアバッジは内部処理のみ（表示なし） -->
+      <div id="score-badge" style="display:none">
+        <span id="score-stars"></span>
         <span id="score-label"></span>
       </div>
     </div>
@@ -354,9 +351,11 @@
 
   <!-- 終了画面 -->
   <div id="end-screen">
-    <img src="./Thankyou.png" alt="ありがとうございました"
-         onerror="this.style.display='none';document.getElementById('end-fallback').style.display='block'">
-    <div id="end-fallback" style="display:none;font-size:5rem">🎉</div>
+    <div id="end-img-wrap">
+      <img id="end-img" src="./Thankyou.png" alt="ありがとうございました"
+           onerror="this.onerror=null;this.src='./thankyou.png';">
+      <div id="end-fallback" style="display:none;font-size:5rem">🎉</div>
+    </div>
     <div class="end-title">ありがとうございました！</div>
     <div class="end-body">
       アンケートへのご協力、誠にありがとうございます。<br>
@@ -373,7 +372,7 @@
 //  ★★★ 設定 ★★★
 // ============================================================
 const CONFIG = {
-  GAS_URL: "https://script.google.com/macros/s/AKfycbxEMuvHkGPJhzRVWwS7jWuS04vH-HycgLSe2s5c1Vya5a7X9G0N5fPolWaVAPUwBRuc/exec",
+  GAS_URL: "ここにGASのデプロイURLを貼り付けてください",
   MAX_TURNS: 10,
   OPENING_MESSAGE: "やあこんにちは！勉強会のアンケートをとっているんだ。あなたの意見を聞かせてください",
   CLOSING_MESSAGE: "ありがとう！アンケートはこれにて終了！主催者に変わり御礼申し上げます！勉強会に参加いただきまして誠にありがとうございました。アンケートを参考により良い運営を目指していきます！ご不明点があれば先のメールにて返信いただければと思います。また次回の勉強会でお会いしましょう！ではでは！",
@@ -442,13 +441,8 @@ function changeCharImage(imgFile) {
 // ===== 吹き出しテキストを更新 =====
 function updateSpeechBubble(text, score) {
   bubbleText.textContent = text;
-  if (score && SCORE_MAP[score]) {
-    scoreBadge.style.display = "flex";
-    scoreStars.textContent = SCORE_MAP[score].stars;
-    scoreLabel.textContent  = SCORE_MAP[score].label;
-  } else {
-    scoreBadge.style.display = "none";
-  }
+  // スコアは内部処理のみ・画面には表示しない
+  scoreBadge.style.display = "none";
 }
 
 // ===== タイピング中の吹き出し =====
@@ -605,6 +599,14 @@ function showEndScreen() {
   chatWindow.style.display   = "none";
   document.getElementById("character-area").style.display = "none";
   endScreen.classList.add("visible");
+  // 画像フォールバック：両方試してダメなら絵文字
+  const endImg = document.getElementById("end-img");
+  if (endImg) {
+    endImg.onerror = function() {
+      this.style.display = "none";
+      document.getElementById("end-fallback").style.display = "block";
+    };
+  }
 }
 
 // ===== Input Setup =====
