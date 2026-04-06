@@ -327,7 +327,7 @@
            onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>'">
     </div>
     <div class="speech-bubble" id="speech-bubble">
-      <div class="bubble-text" id="bubble-text">やあこんにちは！勉強会のアンケートをとっているんだ。あなたの意見を聞かせてください先日の勉強会率直に言ってどうだった？</div>
+      <div class="bubble-text" id="bubble-text">やあこんにちは！勉強会のアンケートをとっているんだ。あなたの意見を聞かせてください</div>
       <!-- スコアバッジは内部処理のみ（表示なし） -->
       <div id="score-badge" style="display:none">
         <span id="score-stars"></span>
@@ -376,6 +376,8 @@ const CONFIG = {
   MAX_TURNS: 10,
   OPENING_MESSAGE: "やあこんにちは！勉強会のアンケートをとっているんだ。あなたの意見を聞かせてください",
   CLOSING_MESSAGE: "ありがとう！アンケートはこれにて終了！主催者に変わり御礼申し上げます！勉強会に参加いただきまして誠にありがとうございました。アンケートを参考により良い運営を目指していきます！ご不明点があれば先のメールにて返信いただければと思います。また次回の勉強会でお会いしましょう！ではでは！",
+  // 9ターン目に固定で出す最後の質問
+  LAST_QUESTION: "ここまでの回答ありがとうございました。最後に何か一言あるかな？",
 };
 
 // スコアと画像・ラベルのマッピング
@@ -475,13 +477,26 @@ async function sendMessage() {
   conversationHistory.push({ role: "user", content: text });
   appendMessage("user", text);
 
-  // 10ターン到達 → 即終了画面へ
+  // 10ターン目：ユーザー入力後即終了画面へ
   if (turnCount >= CONFIG.MAX_TURNS) {
     finalizeSession();
     return;
   }
 
-  // 吹き出しをタイピング中に
+  // 9ターン目：固定の最後の質問を出す
+  if (turnCount === CONFIG.MAX_TURNS - 1) {
+    const lastQ = CONFIG.LAST_QUESTION;
+    conversationHistory.push({ role: "model", content: lastQ });
+    appendMessage("ai", lastQ);
+    updateSpeechBubble(lastQ, null);
+    changeCharImage("Good.png");
+    speak(lastQ);
+    setInputEnabled(true);
+    isProcessing = false;
+    return;
+  }
+
+  // 通常ターン：GASへ送信
   showBubbleTyping();
 
   try {
